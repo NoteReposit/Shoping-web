@@ -8,6 +8,24 @@ function App() {
   const products = productData;
 
   const [cart, setCart] = useState([]);
+  const [coupon, setCoupon] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const shippingCost = 100;
+
+  const validCoupons = {
+    'DISCOUNT20': 20
+  };
+
+  // coupon
+  const applyCoupon = () => {
+    if (validCoupons[coupon]) {
+      setDiscount(validCoupons[coupon]); // ตั้งส่วนลดตามคูปองที่ถูกต้อง
+      alert(`Coupon applied! You get ${validCoupons[coupon]}% off.`);
+    } else {
+      alert('Invalid coupon');
+      setDiscount(0); // ถ้าคูปองไม่ถูกต้อง รีเซ็ตส่วนลด
+    }
+  };
 
   // add product to shopping cart
   function addToCart(product) {
@@ -54,15 +72,21 @@ function App() {
 
   // calculate total price of products 
   const calculateTotal = () => {
-    return cart
-      .reduce((total, item) => total + item.price * item.quantity, 0)
-      .toFixed(2);
+    const total = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    const discountAmount = total * (discount / 100);
+    return (total - discountAmount + shippingCost).toFixed(2);
+  };
+
+  // Calculate the total price without discount 
+  const calculateSubTotal = () => {
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
   };
 
   // Handle Checkout (clear the cart)
   function handleCheckout() {
     alert('Thank you for your purchase!');
     setCart([]); // Clear the cart after checkout
+    setDiscount(0);
   }
 
   // Show Product List
@@ -137,6 +161,28 @@ function App() {
     );
   }
 
+  function CouponSection() {
+    return (
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-3">Apply Coupon</h3>
+        <p className='mb-3 text-gray-500'>use this coupon 'DISCOUNT20'</p>
+        <input
+          type="text"
+          value={coupon}
+          onChange={(e) => setCoupon(e.target.value)}
+          placeholder="Enter coupon code"
+          className="border p-2 rounded-lg mr-2"
+        />
+        <button
+          onClick={applyCoupon}
+          className="bg-main-color text-white px-4 py-2 rounded-lg hover:bg-emerald-800"
+        >
+          Apply
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-main-color">
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-8 lg:max-w-7xl lg:px-8">
@@ -146,6 +192,12 @@ function App() {
         <div className='bg-white mt-8 p-8 rounded-xl'>
           <h2 className="text-2xl font-bold tracking-tight text-black pb-8">Items in your shopping cart</h2>
           <ShowCart />
+          <CouponSection />
+
+          <div className=''>
+            <h2 className="text-xl mt-4">Subtotal: ${calculateSubTotal()}</h2>
+            <h2 className="text-xl mt-4">Shipping: ${shippingCost}</h2>
+          </div>
 
           <div className='flex justify-between items-center'>
             <h2 className="text-2xl font-bold mt-6">Total Price: ${calculateTotal()}</h2>
